@@ -1,7 +1,11 @@
 import React, { useState } from "react";
+import { useHistory } from "react-router";
 import { registerUsers } from "../Servicess/api";
 
+
 const Signup = () => {
+  const history=useHistory();
+  const [uploadedFile, setUploadedFile] = useState(null);
   const [userDetails, setUserDetails] = useState({
     firstName: "",
     lastName: "",
@@ -9,16 +13,48 @@ const Signup = () => {
     phone: "",
     password: "",
     address: "",
+    userProf: "",
   });
+
+
+
+  const onUploadHandler = (e) => {
+    setUploadedFile(e.target.files[0]);
+  };
+
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
-   registerUsers(userDetails).then(res=>{
+    const formData = new FormData();
+
+      formData.append("firstName", userDetails.firstName);
+      formData.append("lastName", userDetails.lastName);
+      formData.append("email", userDetails.email);
+      formData.append("phone", userDetails.phone);
+      formData.append("password", userDetails.password);
+      formData.append("address", userDetails.address);
+      formData.append("userProf", uploadedFile);
+
+
+   registerUsers(formData).then(res=>{
      console.log(res);
    })
+   setUserDetails({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    address: "",
+    userProf: "",
+  })
+   history.push('/');
   };
+  
+
   const onChangeHandler = (e) => {
     setUserDetails({ ...userDetails, [e.target.name]: e.target.value });
+   
   };
   return (
     <section className="p-2">
@@ -31,7 +67,7 @@ const Signup = () => {
                 <h2 className="text-uppercase font-weight-bold">Regitration</h2>
               </div>
               <div className="card-body bg-light">
-                <form onSubmit={onSubmitHandler}>
+                <form onSubmit={onSubmitHandler}  encType="multipart/form-data">
                   <div className="form-group">
                     <input
                       type="text"
@@ -55,8 +91,8 @@ const Signup = () => {
 
                   <div className="form-group">
                     <input
-                      type="email"
                       name="email"
+                      type="email"
                       value={userDetails.email}
                       onChange={onChangeHandler}
                       placeholder="Email"
@@ -83,6 +119,7 @@ const Signup = () => {
                       className="form-control"
                     />
                   </div>
+                 
 
                   <div className="form-group">
                     <textarea
@@ -94,6 +131,9 @@ const Signup = () => {
                       rows="4"
                     ></textarea>
                   </div>
+                  <div className="form-group">
+                  <input className="form-control" name="userProf" onChange={onUploadHandler} type="file" id="formFile" />
+                </div>
                   <div>
                     <button className="btn btn-outline-success register btn-sm">
                       Register

@@ -11,6 +11,11 @@ export const loginUsers = async (user) => {
 };
 
 
+export const editUser = async (id,user) => {
+  return await axios.patch(`${url}/user/editUser/${id}`, user);
+};
+
+
 export const showProfile = async (id) => {
   return await axios.get(`${url}/user/show-user/${id}`
   ,{

@@ -1,9 +1,33 @@
 const express = require("express");
 const userDetails = require("../models/signup");
 const bcrypt = require("bcrypt");
+var multer = require("multer");
 const jwt = require("jsonwebtoken");
 const auth = require("../Middleware/auth");
 const router = express.Router();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads");
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
+
+const FileFilter = (req, file, cb) => {
+  if (file.mimetype === "image/jpeg") {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1024 * 1024 * 10 },
+  fileFilter: FileFilter,
+});
 
 router.get("/show-user/:id", auth, (req, res) => {
   const id = req.params.id;
@@ -20,16 +44,19 @@ router.get("/show-user/:id", auth, (req, res) => {
     });
 });
 
-router.post("/sign-up", (req, res) => {
+router.post("/sign-up", upload.single("userProf"), (req, res) => {
+  const userProf = req.file.path;
   const { firstName, lastName, email, phone, password, address } = req.body;
+
   bcrypt.hash(password, 10).then(function (hash) {
     const newUser = new userDetails({
       firstName,
       lastName,
       email,
       phone,
-      address,
       password: hash,
+      address,
+      userProf,
     });
 
     newUser
@@ -41,6 +68,21 @@ router.post("/sign-up", (req, res) => {
         res.json({ message: error.message });
       });
   });
+});
+
+router.patch("/editUser/:id", upload.single("userProf"), (req, res) => {
+  const { id } = req.params;
+  const userProf = req.file.path;
+  const newUser =req.body;
+
+  userDetails
+    .updateOne({ _id: id }, {...newUser,userProf})
+    .then((result) => {
+      res.send(result);
+    })
+    .catch((err) => {
+      res.status(500).json({ message: err });
+    });
 });
 
 router.post("/login", (req, res) => {
