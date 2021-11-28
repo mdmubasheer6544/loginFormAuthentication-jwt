@@ -1,6 +1,5 @@
 const express = require("express");
 const userDetails = require("../models/signup");
-const bcrypt = require("bcrypt");
 var multer = require("multer");
 const jwt = require("jsonwebtoken");
 const auth = require("../Middleware/auth");
@@ -29,6 +28,7 @@ const upload = multer({
   fileFilter: FileFilter,
 });
 
+// Get user details Route
 router.get("/show-user/:id", auth, (req, res) => {
   const id = req.params.id;
   userDetails
@@ -44,39 +44,33 @@ router.get("/show-user/:id", auth, (req, res) => {
     });
 });
 
+// SignUp Route Add new User
 router.post("/sign-up", upload.single("userProf"), (req, res) => {
   const userProf = req.file.path;
-  const { firstName, lastName, email, phone, password, address } = req.body;
-
-  bcrypt.hash(password, 10).then(function (hash) {
-    const newUser = new userDetails({
-      firstName,
-      lastName,
-      email,
-      phone,
-      password: hash,
-      address,
-      userProf,
-    });
-
-    newUser
-      .save()
-      .then((user) => {
-        res.status(200).json(user);
-      })
-      .catch((error) => {
-        res.json({ message: error.message });
-      });
+  const { firstName, lastName, email, password } = req.body;
+  const newUser = new userDetails({
+    firstName,
+    lastName,
+    email,
+    password,
+    userProf,
   });
+  newUser
+    .save()
+    .then((user) => {
+      res.status(200).json(user);
+    })
+    .catch((error) => {
+      res.json({ message: error.message });
+    });
 });
 
+// Edit User Details Route
 router.patch("/editUser/:id", upload.single("userProf"), (req, res) => {
   const { id } = req.params;
-  const userProf = req.file.path;
-  const newUser =req.body;
-
+  const newUser = req.body;
   userDetails
-    .updateOne({ _id: id }, {...newUser,userProf})
+    .updateOne({ _id: id }, newUser)
     .then((result) => {
       res.send(result);
     })
@@ -85,9 +79,10 @@ router.patch("/editUser/:id", upload.single("userProf"), (req, res) => {
     });
 });
 
+
+// Login /SignIn Route
 router.post("/login", (req, res) => {
   const { email, password } = req.body;
-
   userDetails
     .find({ email: email })
     .exec()
@@ -97,35 +92,32 @@ router.post("/login", (req, res) => {
           message: "Authentication Failed",
         });
       }
-      bcrypt.compare(password, users[0].password, (err, result) => {
-        if (err) {
-          return res.status(401).json({
-            message: "Authentication Failed",
-          });
-        }
-        if (result) {
-          const token = jwt.sign(
-            {
-              email: users[0].email,
-              password: users[0].password,
-            },
-            process.env.JWT_TOKEN,
-            {
-              expiresIn: "5 minutes",
-            }
-          );
-
-          return res.status(200).json({
-            isLogin: true,
-            message: "Authentication Sucess",
-            token: token,
-            data: users,
-          });
-        }
-        res.status(401).json({
-          isLogin: false,
+      if (password !== users[0].password) {
+        return res.status(401).json({
           message: "Authentication Failed",
         });
+      }
+      if (password === users[0].password) {
+        const token = jwt.sign(
+          {
+            email: users[0].email,
+            password: users[0].password,
+          },
+          process.env.JWT_TOKEN,
+          {
+            expiresIn: "5 minutes",
+          }
+        );
+        return res.status(200).json({
+          isLogin: true,
+          message: "Authentication Sucess",
+          token: token,
+          data: users,
+        });
+      }
+      return res.status(401).json({
+        isLogin: false,
+        message: "Authentication Failed",
       });
     })
     .catch((err) => {

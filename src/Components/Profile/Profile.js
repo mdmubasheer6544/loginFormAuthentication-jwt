@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from "react";
-import { showProfile, editUser } from "../Servicess/api";
+import { showProfile } from "../Servicess/api";
 import userAuth from "../AuthContext/AuthContext";
 import { useHistory } from "react-router";
 
@@ -24,7 +24,7 @@ const Profile = () => {
         <div className="row">
           <div className="col-md-2"></div>
           <div className="col-md-8">
-            <table className="table table-hover table-striped text-center">
+            <table className="table table-hover table-striped text-center rounded">
               <thead className="bg-success text-white">
                 <tr>
                   <th className="text-uppercase font-weight-bold">Profile</th>
@@ -33,8 +33,7 @@ const Profile = () => {
                   </th>
                   <th className="text-uppercase font-weight-bold">last Name</th>
                   <th className="text-uppercase font-weight-bold">Email</th>
-                  <th className="text-uppercase font-weight-bold">Phone</th>
-                  <th className="text-uppercase font-weight-bold">Address</th>
+                  <th className="text-uppercase font-weight-bold">Password</th>
                   <th className="text-uppercase font-weight-bold">Edit</th>
                 </tr>
               </thead>
@@ -46,16 +45,16 @@ const Profile = () => {
                   <td>{userDetails.firstName}</td>
                   <td>{userDetails.lastName}</td>
                   <td>{userDetails.email}</td>
-                  <td>{userDetails.phone}</td>
-                  <td>{userDetails.address}</td>
+                  <td>{userDetails.password}</td>
+        
                   <td>
                     <button
-                      className="btn btn-sm btn-primary"
+                      className="btn btn-sm btn-outline-primary"
                       onClick={() => edit(userDetails._id)}
                     >
-                      {" "}
                       Edit
                     </button>
+                   
                   </td>
                 </tr>
               </tbody>

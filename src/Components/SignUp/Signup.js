@@ -1,61 +1,80 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router";
 import { registerUsers } from "../Servicess/api";
-
-
+import useValidation from "../Hooks/use-validation";
+const emailRegx =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const Signup = () => {
-  const history=useHistory();
-  const [uploadedFile, setUploadedFile] = useState(null);
-  const [userDetails, setUserDetails] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    address: "",
-    userProf: "",
-  });
+  const history = useHistory();
+  const [uploadedFile, setUploadedFile] = useState(0);
 
+  const {
+    value: firstName,
+    isValid: firstNameIsValid,
+    hasError: firstNameHasError,
+    valueChangeHandler: firstNameChangeHandler,
+    inputBlurHandler: firstNameBlurHandler,
+    reset: firstNameReset,
+  } = useValidation((value) => value.trim() !== "");
 
+  const {
+    value: lastName,
+    isValid: lastNameIsValid,
+    hasError: lastNameHasError,
+    valueChangeHandler: lastNameChangeHandler,
+    inputBlurHandler: lastNameBlurHandler,
+    reset: lastNameReset,
+  } = useValidation((value) => value.trim() !== "");
+
+  const {
+    value: email,
+    isValid: emailIsValid,
+    hasError: emailHasError,
+    valueChangeHandler: emailChangeHandler,
+    inputBlurHandler: emailBlurHandler,
+    reset: emailReset,
+  } = useValidation((value) => value.match(emailRegx));
+
+  const {
+    value: password,
+    isValid: passwordIsValid,
+    hasError: passwordHasError,
+    valueChangeHandler: passwordChangeHandler,
+    inputBlurHandler: passwordBlurHandler,
+    reset: passwordeReset,
+  } = useValidation((value) => value.trim() !== "");
 
   const onUploadHandler = (e) => {
     setUploadedFile(e.target.files[0]);
   };
 
+  let isFormValid = false;
+  if (firstNameIsValid && lastNameIsValid && emailIsValid && passwordIsValid) {
+    isFormValid = true;
+  }
 
   const onSubmitHandler = (e) => {
     e.preventDefault();
     const formData = new FormData();
+    formData.append("firstName", firstName);
+    formData.append("lastName", lastName);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("userProf", uploadedFile);
 
-      formData.append("firstName", userDetails.firstName);
-      formData.append("lastName", userDetails.lastName);
-      formData.append("email", userDetails.email);
-      formData.append("phone", userDetails.phone);
-      formData.append("password", userDetails.password);
-      formData.append("address", userDetails.address);
-      formData.append("userProf", uploadedFile);
-
-
-   registerUsers(formData).then(res=>{
-     console.log(res);
-   })
-   setUserDetails({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    address: "",
-    userProf: "",
-  })
-   history.push('/');
-  };
+    if (isFormValid) {
+      registerUsers(formData).then((res) => {
+        console.log(res);
+      });
+      history.push("/");
+    }
+    firstNameReset("");
+    lastNameReset("");
+    emailReset("");
+    passwordeReset("");
   
-
-  const onChangeHandler = (e) => {
-    setUserDetails({ ...userDetails, [e.target.name]: e.target.value });
-   
   };
+
   return (
     <section className="p-2">
       <div className="container">
@@ -64,78 +83,93 @@ const Signup = () => {
           <div className="col-md-6">
             <div className="card">
               <div className="card-header bg-secondary text-center text-white">
-                <h2 className="text-uppercase font-weight-bold">Regitration</h2>
+                <h2 className="text-uppercase font-weight-bold">
+                  Registration
+                </h2>
               </div>
               <div className="card-body bg-light">
-                <form onSubmit={onSubmitHandler}  encType="multipart/form-data">
+                <form onSubmit={onSubmitHandler} encType="multipart/form-data">
                   <div className="form-group">
                     <input
                       type="text"
                       name="firstName"
-                      value={userDetails.firstName}
-                      onChange={onChangeHandler}
+                      value={firstName}
+                      onChange={firstNameChangeHandler}
+                      onBlur={firstNameBlurHandler}
                       placeholder="First Name"
                       className="form-control"
                     />
+                    {firstNameHasError && (
+                      <small className="text-danger ml-1">
+                        First Name is not be empty!
+                      </small>
+                    )}
                   </div>
                   <div className="form-group">
                     <input
                       type="text"
                       name="lastName"
-                      value={userDetails.lastName}
-                      onChange={onChangeHandler}
+                      value={lastName}
+                      onChange={lastNameChangeHandler}
+                      onBlur={lastNameBlurHandler}
                       placeholder="Last Name"
                       className="form-control"
                     />
+                    {lastNameHasError && (
+                      <small className="text-danger ml-1">
+                        Last Name is not be empty!
+                      </small>
+                    )}
                   </div>
 
                   <div className="form-group">
                     <input
                       name="email"
                       type="email"
-                      value={userDetails.email}
-                      onChange={onChangeHandler}
+                      value={email}
+                      onChange={emailChangeHandler}
+                      onBlur={emailBlurHandler}
                       placeholder="Email"
                       className="form-control"
                     />
+                    {emailHasError && (
+                      <small className="text-danger ml-1">
+                        Please enter valid email!
+                      </small>
+                    )}
                   </div>
-                  <div className="form-group">
-                    <input
-                      type="number"
-                      name="phone"
-                      value={userDetails.phone}
-                      onChange={onChangeHandler}
-                      placeholder="Phone"
-                      className="form-control"
-                    />
-                  </div>
+
                   <div className="form-group">
                     <input
                       type="password"
                       name="password"
-                      value={userDetails.password}
-                      onChange={onChangeHandler}
+                      value={password}
+                      onChange={passwordChangeHandler}
+                      onBlur={passwordBlurHandler}
                       placeholder="Password"
                       className="form-control"
                     />
+                    {passwordHasError && (
+                      <small className="text-danger ml-1">
+                        Password is not be empty!
+                      </small>
+                    )}
                   </div>
-                 
-
                   <div className="form-group">
-                    <textarea
-                      name="address"
-                      value={userDetails.address}
-                      onChange={onChangeHandler}
-                      placeholder="Address"
+                    <input
                       className="form-control"
-                      rows="4"
-                    ></textarea>
+                      name="userProf"
+                      onChange={onUploadHandler}
+                      type="file"
+                      id="formFile"
+                      required
+                    />
                   </div>
-                  <div className="form-group">
-                  <input className="form-control" name="userProf" onChange={onUploadHandler} type="file" id="formFile" />
-                </div>
                   <div>
-                    <button className="btn btn-outline-success register btn-sm">
+                    <button
+                      disabled={!isFormValid}
+                      className="btn btn-outline-success register btn-sm"
+                    >
                       Register
                     </button>
                   </div>

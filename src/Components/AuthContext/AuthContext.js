@@ -6,22 +6,22 @@ const userAuth = createContext({
 
 export const AuthContextProvider = (props) => {
   const [isLogin, setIsLogin] = useState(false);
-  const [userId, setUserId] = useState();
+  const [userId, setUserId] = useState("");
 
-  const changeLogin = (loginValue,id) => {
+  const changeLogin = (loginValue, id) => {
     setIsLogin(loginValue);
-    setUserId(id)
+    setUserId(id);
   };
-  const logOut=()=>{
-      setIsLogin('');
-      setUserId('');
-      localStorage.removeItem('token');
-  }
+  const logOut = () => {
+    setIsLogin(false);
+    setUserId("");
+    localStorage.removeItem("token");
+  };
   const initialState = {
     userId,
     isLogin,
     changeLogin,
-    logOut
+    logOut,
   };
 
   return (
@@ -30,5 +30,3 @@ export const AuthContextProvider = (props) => {
 };
 
 export default userAuth;
-
-
